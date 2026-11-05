@@ -1,0 +1,26 @@
+rules_version = '2';
+// Règles de sécurité de Prépa Résidanat (à coller dans Firebase > Firestore > Règles, voir README étape 4).
+// Remplace l'adresse ci-dessous par la tienne (la même que dans firebase-config.js).
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function me(uid) { return signedIn() && request.auth.uid == uid; }
+    function isOwner() { return signedIn() && request.auth.token.email != null && request.auth.token.email_verified == true && request.auth.token.email.lower() in ['ton.email@exemple.com']; }
+    function isAdmin() { return isOwner() || (signedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid))); }
+
+    // Planning et progression : privés, seul l'étudiant lui-même y accède
+    match /data/users/{uid}/{doc} { allow read, write: if me(uid); }
+
+    // Administrateurs : visibles par les comptes connectés, nommés uniquement par le propriétaire
+    match /admins/{uid} { allow read: if signedIn(); allow write: if isOwner(); }
+
+    // Offres (Basique, Avancé, Pro, Max) : l'étudiant lit la sienne, seuls les admins les attribuent
+    match /access/{uid} { allow read: if me(uid) || isAdmin(); allow write: if isAdmin(); }
+
+    // Profils et demandes d'offre : l'étudiant écrit le sien (sans pouvoir s'attribuer d'offre), les admins voient tout
+    match /members/{uid} { allow read: if me(uid) || isAdmin(); allow write: if me(uid) || isAdmin(); }
+
+    // Classement : visible par les comptes connectés, chacun n'écrit que sa ligne
+    match /board/{uid} { allow read: if signedIn(); allow write: if me(uid) || isOwner(); }
+  }
+}
