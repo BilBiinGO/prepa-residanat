@@ -127,6 +127,15 @@ Quand tu reçois un nouveau `index.html`, remplace-le dans le dépôt (**Add fil
 1. Dans la version Claude, ouvre **Réglages**, puis **Sauvegarde**, puis **Exporter une copie (.json)**.
 2. Dans la version GitHub, connecte-toi, puis ouvre **Réglages**, puis **Sauvegarde**, puis **Importer une copie**.
 
+## Fast Track Planning
+
+Le bouton **Fast Track** (page Planning, ou bandeau d'accueil) charge en un clic le programme de révision accéléré du 8 novembre 2026 au 27 mai 2027, identique pour tous les utilisateurs, quelle que soit leur offre.
+
+- Les dates de chaque module viennent du grand tableau du programme ; elles sont dans le tableau `FT` de `index.html` (à modifier pour changer le programme).
+- Les cours de chaque module sont répartis jour par jour selon leur poids, avec des QCM, dans les heures disponibles de la semaine type.
+- Il remplace les blocs à venir non verrouillés sur cette période ; les blocs faits, verrouillés ou placés à la main restent. Le bouton **Annuler** rétablit le planning d'avant.
+- Les jours à 0 h (repos, absences) sont sautés sauf si l'utilisateur coche l'option.
+
 ## Bon à savoir
 
 - **Gratuité :** le forfait gratuit de Firebase couvre largement quelques centaines d'étudiants. Vérifie les quotas actuels sur la page Tarifs de Firebase.

@@ -953,7 +953,7 @@ function vToday() {
   const goal = k <= 4 ? LAYER_GOALS[k - 1] : "Examens blancs, points faibles et repos.";
   const left = k <= 4 ? diffD(today, LAY[k - 1].end) + 1 : Math.max(0, diffD(today, S.cfg.exam));
   let h = '<div class="stack">';
-  if (S.first) h += '<div class="notice info"><b>Une proposition de planning est prête.</b> Elle suit tes règles (couches de 6, 3, 1,5 mois et 20 jours, biologie d\'abord), ton internat et ta semaine type (' + weekSummary() + "), pour un concours le " + fmtD(S.cfg.exam, "y") + ". Rien n'est imposé : accepte-la, modifie-la ou ignore-la depuis le Planning.<div class=\"row\" style=\"margin-top:8px\"><button class=\"btn sm\" data-act=\"tab\" data-v=\"set\">Ouvrir les réglages</button><button class=\"btn sm\" data-act=\"pal\">Choisir l'apparence</button><button class=\"btn sm ghost\" data-act=\"firstok\">Compris</button></div></div>";
+  if (S.first) h += '<div class="notice info"><b>Une proposition de planning est prête.</b> Elle suit tes règles (couches de 6, 3, 1,5 mois et 20 jours, biologie d\'abord), ton internat et ta semaine type (' + weekSummary() + "), pour un concours le " + fmtD(S.cfg.exam, "y") + ". Rien n'est imposé : accepte-la, modifie-la ou ignore-la depuis le Planning.<div class=\"row\" style=\"margin-top:8px\"><button class=\"btn sm pri\" data-act=\"ftopen\">Charger le Fast Track</button><button class=\"btn sm\" data-act=\"tab\" data-v=\"set\">Ouvrir les réglages</button><button class=\"btn sm\" data-act=\"pal\">Choisir l'apparence</button><button class=\"btn sm ghost\" data-act=\"firstok\">Compris</button></div></div>";
   if (tierId() === "basic") h += '<div class="notice info"><b>Version découverte.</b> Planning visible sur 14 jours, ' + T().daily + ' questions IA par jour. L\'offre Avancé débloque l\'application complète.<div class="row" style="margin-top:8px"><button class="btn sm pri" data-act="goacc">Voir les offres</button></div></div>';
   h += '<div class="card"><div class="row between" style="align-items:flex-start"><div><div class="eyebrow">' + fmtD(today, "long") + '</div><h2 style="margin-top:4px">' + layerTxt + '</h2><p class="muted small" style="margin-top:4px;max-width:56ch">' + esc(goal) + "</p></div>" +
     '<div class="kpi" style="text-align:right"><b class="mono">' + left + '</b><span>jours dans cette couche</span></div></div><div style="margin-top:16px">' + strataHtml() + "</div></div>";
@@ -1508,7 +1508,7 @@ function spreadModule(mid, m) {
 function planNav() {
   const pv = ui.pv || "month", m = ui.month || today.slice(0, 7), ws = ui.pw || wkStart(today), d = ui.day || today;
   const crumbs = [["prog", "Programme"], ["month", monthLabel(m)], ["week", "Semaine du " + fmtD(ws, "short")], ["day", fmtD(d, "long")]];
-  return '<div class="card"><div class="row between"><div class="seg" role="tablist" aria-label="Niveau du planning">' + (S.wiz ? [["wiz", "Assistant"], ...PV] : PV).map(p => '<button data-act="pvgo" data-pv="' + p[0] + '" aria-pressed="' + (pv === p[0]) + '">' + p[1] + "</button>").join("") + '</div><div class="row" style="gap:6px"><button class="btn sm" data-act="scratch">' + ico("undo") + ' Repartir de zéro</button><button class="btn sm" data-act="propose">' + ico("spark") + ' Proposer un planning</button><button class="btn sm" data-act="replan">Rattraper le retard</button>' + (UNDO && pv !== "wiz" ? '<button class="btn sm ghost" data-act="undoreplan">' + ico("undo") + " Annuler</button>" : "") + "</div></div>" +
+  return '<div class="card"><div class="row between"><div class="seg" role="tablist" aria-label="Niveau du planning">' + (S.wiz ? [["wiz", "Assistant"], ...PV] : PV).map(p => '<button data-act="pvgo" data-pv="' + p[0] + '" aria-pressed="' + (pv === p[0]) + '">' + p[1] + "</button>").join("") + '</div><div class="row" style="gap:6px"><button class="btn sm pri" data-act="ftopen">' + ico("flag") + ' Fast Track</button><button class="btn sm" data-act="scratch">' + ico("undo") + ' Repartir de zéro</button><button class="btn sm" data-act="propose">' + ico("spark") + ' Proposer un planning</button><button class="btn sm" data-act="replan">Rattraper le retard</button>' + (UNDO && pv !== "wiz" ? '<button class="btn sm ghost" data-act="' + (UNDO.ft ? "ftundo" : "undoreplan") + '">' + ico("undo") + " Annuler</button>" : "") + "</div></div>" +
     (pv === "wiz" ? "" : '<nav class="tiny muted" style="margin-top:10px" aria-label="Fil d\'Ariane">') + (pv === "wiz" ? [] : crumbs.slice(0, PV.findIndex(p => p[0] === pv) + 1)).map((c, i, a) => i < a.length - 1 ? '<button class="btn ghost sm" style="padding:2px 6px;min-height:0" data-act="pvgo" data-pv="' + c[0] + '">' + esc(c[1]) + "</button> › " : "<b>" + esc(c[1]) + "</b>").join("") + (pv === "wiz" ? "" : "</nav>") + "</div>";
 }
 function vPlan() {
@@ -1657,6 +1657,118 @@ const dayFree = d => d < today || d > S.cfg.exam ? 0 : Math.max(0, cap(d) - S.bl
 function monthFree(m) { let t = 0; for (let d = m + "-01"; d <= monthEnd(m); d = addD(d, 1)) t += dayFree(d); return t; }
 function weekFree(w, m) { let t = 0; for (let i = 0; i < 7; i++) { const d = addD(w, i); if (!m || d.slice(0, 7) === m) t += dayFree(d); } return t; }
 function monthWeeks(m) { const out = []; for (let w = wkStart(m + "-01"); w <= monthEnd(m); w = addD(w, 7)) out.push(w); return out; }
+
+/* ===== Fast Track : programme de révision jour par jour (8 nov. 2026 → 27 mai 2027), le même pour tout le monde =====
+   Chaque ligne : début, fin, libellé, [[module, cours retenus (indices) ou null pour tout le module], ...].
+   Un libellé sans module (parts = null) devient un bloc libre : le catalogue n'a pas de module « Biophysique ».
+   Les modules vus en deux fois (Urologie, Physiologie, Pneumologie) ou « 2ème année » (Histologie, Immunologie)
+   sont découpés dans l'ordre du catalogue ; les blocs sont tagués wz = "ft" pour pouvoir être rechargés proprement. */
+const FT_TAG = "ft", FT_END = "2027-05-27";
+const ftR = (a, b) => Array.from({ length: b - a + 1 }, (_, i) => a + i);
+const FT_BPCO = [7, 8, 9, 10, 20, 21];                       // pneumo : BPCO, emphysème, IRC, asthme, tabac, apnée du sommeil
+const FT = [
+  ["2026-11-08", "2026-11-12", "Biochimie 2ème", [["bioch"]]],
+  ["2026-11-13", "2026-11-18", "Biochimie 3ème", [["biochc"]]],
+  ["2026-11-19", "2026-11-30", "Gastro-entérologie", [["gastro"]]],
+  ["2026-12-01", "2026-12-09", "Génétique", [["gene"]]],
+  ["2026-12-10", "2026-12-15", "Histologie 2ème", [["histo", ftR(8, 41)]]],
+  ["2026-12-16", "2026-12-21", "Cardiologie", [["cardio"]]],
+  ["2026-12-22", "2026-12-26", "Anatomopathologie", [["anapath"]]],
+  ["2026-12-27", "2026-12-31", "Immunologie 2ème", [["immuno", ftR(0, 14)]]],
+  ["2027-01-01", "2027-01-05", "Orthopédie", [["ortho"]]],
+  ["2027-01-06", "2027-01-10", "Pneumologie 3ème", [["pneumo", ftR(0, 28).filter(i => !FT_BPCO.includes(i))]]],
+  ["2027-01-11", "2027-01-14", "Urologie", [["uro", ftR(0, 8)]]],
+  ["2027-01-15", "2027-01-22", "Gynécologie", [["gyneco"]]],
+  ["2027-01-23", "2027-01-31", "Physiologie 2ème", [["physio", ftR(9, 61)]]],
+  ["2027-02-01", "2027-02-07", "Endocrinologie", [["endoc"]]],
+  ["2027-02-08", "2027-02-10", "Microbiologie", [["micro"]]],
+  ["2027-02-11", "2027-02-14", "Pharmacologie", [["pharma"]]],
+  ["2027-02-15", "2027-02-23", "Neurologie", [["neuro"]]],
+  ["2027-02-24", "2027-02-28", "Parasitologie", [["paras"]]],
+  ["2027-03-01", "2027-03-06", "Hématologie", [["hemato"]]],
+  ["2027-03-07", "2027-03-08", "Physiopathologie", [["physiopath"]]],
+  ["2027-03-09", "2027-03-10", "Radiologie", [["radio"]]],
+  ["2027-03-11", "2027-03-15", "Oncologie", [["onco"]]],
+  ["2027-03-16", "2027-03-20", "Infectiologie", [["infect"]]],
+  /* 21 mars : jour libre dans le programme */
+  ["2027-03-22", "2027-03-24", "Embryologie", [["embryo"]]],
+  ["2027-03-25", "2027-03-31", "Pédiatrie", [["pedia"]]],
+  ["2027-04-01", "2027-04-03", "Mito 1", [["cyto", [9]]]],
+  ["2027-04-04", "2027-04-08", "Urologie", [["uro", ftR(9, 19)]]],
+  ["2027-04-09", "2027-04-12", "Néphrologie", [["nephro"]]],
+  ["2027-04-13", "2027-04-17", "Rhumatologie-MPR", [["rhumato"], ["mpr"]]],
+  ["2027-04-18", "2027-04-20", "Psychiatrie", [["psy"]]],
+  ["2027-04-21", "2027-04-24", "Pneumologie BPCO", [["pneumo", FT_BPCO]]],
+  ["2027-04-25", "2027-04-27", "Biophysique", null],
+  ["2027-04-28", "2027-04-30", "Physiologie 1", [["physio", ftR(0, 8)]]],
+  ["2027-05-01", "2027-05-03", "Ophtalmologie", [["ophtalmo"]]],
+  ["2027-05-04", "2027-05-06", "ORL", [["orl"]]],
+  ["2027-05-07", "2027-05-09", "UMC", [["umc"]]],
+  ["2027-05-10", "2027-05-12", "Médecine légale", [["legale"]]],
+  ["2027-05-13", "2027-05-15", "Dermatologie", [["dermato"]]],
+  ["2027-05-16", "2027-05-18", "Épidémiologie", [["epidem"]]],
+  ["2027-05-19", "2027-05-21", "Médecine du travail", [["travail"]]],
+  ["2027-05-22", "2027-05-24", "Maladies systémiques", [["syst"]]],
+  ["2027-05-25", "2027-05-27", "Gériatrie", [["geria"]]]
+];
+/* Jours utilisables d'une plage : ni passés, ni après le concours ; les jours à 0 h (repos, absence) sont sautés sauf si l'étudiant le demande */
+function ftDays(a, b, withRest) {
+  const out = [];
+  for (let d = a; d <= b; d = addD(d, 1)) { if (d < today || d > S.cfg.exam) continue; const c = cap(d); if (c > 0 || withRest) out.push([d, c > 0 ? c : 360]); }
+  return out;
+}
+/* Répartit les cours d'une plage sur ses jours, au prorata de leur charge : chaque cours reçoit un intervalle de minutes,
+   découpé aux frontières des jours (« suite » le lendemain), avec environ 65 % de cours et 35 % de QCM. */
+function ftBuild(withRest) {
+  const blocks = [], missed = [], ord = {}, doneC = new Set(S.blocks.filter(b => b.s === "d" && b.t === "cours" && b.c).map(b => b.c));
+  const put = (d, c, t, m, suite) => blocks.push({ id: uid(), d, c, t, m, s: "p", l: Math.min(5, layerOf(d, LAY)), o: 700 + (ord[d] = (ord[d] || 0) + 1), ma: 1, wz: FT_TAG, ...(suite ? { n: "suite" } : {}) });
+  FT.forEach(([a, b, label, parts]) => {
+    const days = ftDays(a, b, withRest);
+    if (!days.length) { missed.push(label); return; }
+    if (!parts) { days.forEach(([d, c]) => blocks.push({ id: uid(), d, c: null, t: "libre", m: c, s: "p", l: Math.min(5, layerOf(d, LAY)), o: 700 + (ord[d] = (ord[d] || 0) + 1), ma: 1, wz: FT_TAG, n: label })); return; }
+    const cs = [];
+    parts.forEach(([mid, keep]) => CS.filter(c => c.mid === mid && !c.off && !doneC.has(c.id) && !((S.prog[c.id] || {}).mastery >= 3) && (!keep || (!c.custom && keep.includes(c.i)))).forEach(c => cs.push(c)));
+    if (!cs.length) { missed.push(label); return; }
+    const pool = days.reduce((s, x) => s + x[1], 0), W = cs.reduce((s, c) => s + c.load, 0) || 1;
+    const edges = []; let acc = 0, w = 0;
+    cs.forEach(c => { w += c.load; acc = Math.min(pool, Math.round(pool * w / W / 5) * 5); edges.push(acc); });
+    edges[edges.length - 1] = pool;
+    let start = 0;
+    cs.forEach((c, k) => {
+      const end = edges[k]; let p = start, dayStart = 0, first = true; start = end;
+      days.forEach(([d, cp]) => {
+        const lo = Math.max(p, dayStart), hi = Math.min(end, dayStart + cp); dayStart += cp;
+        if (hi <= lo) return;
+        const x = hi - lo, cm = x <= 20 ? x : r5(x * 0.65), qm = x - cm;
+        put(d, c.id, "cours", qm > 0 && qm < 10 ? x : cm, !first);
+        if (qm >= 10) put(d, c.id, "qcm", qm, !first);
+        first = false;
+      });
+    });
+  });
+  return { blocks, missed };
+}
+function openFT() {
+  const g = ftBuild(false), days = new Set(g.blocks.map(b => b.d)).size, fm = d => d.slice(8) + "/" + d.slice(5, 7);
+  const kept = S.blocks.filter(b => b.s === "p" && b.d && b.d >= today && b.d <= FT_END && !b.lk && (!b.ma || b.wz === FT_TAG)).length;
+  openModal('<h3>Fast Track Planning</h3><p class="small muted">Le programme de révision accéléré, identique pour tous : ' + FT.length + " étapes du 8 novembre 2026 au 27 mai 2027, d'" + "après le grand tableau du programme (de la biochimie aux modules de 6e année). Chaque module est placé sur ses dates, avec ses cours répartis jour par jour et des QCM.</p>" +
+    '<div class="notice" style="margin-top:10px">' + (g.blocks.length ? "<b>" + g.blocks.length + " blocs sur " + days + " jours</b> seront placés à partir d'aujourd'hui" : "<b>Rien à placer</b> : les dates du programme sont passées ou après ton concours") + ". Tes " + kept + ' blocs à venir non verrouillés sur cette période seront remplacés ; tes blocs faits, verrouillés ou placés à la main restent. Tu pourras annuler juste après.' + (g.missed.length ? "<br><span class=\"small muted\">Non placés (dates passées, cours maîtrisés ou jours à 0 h) : " + esc(g.missed.join(", ")) + ".</span>" : "") + "</div>" +
+    '<label style="flex-direction:row;align-items:center;gap:10px;color:var(--ink);margin-top:10px"><input type="checkbox" id="ftrest">Étudier aussi les jours où j\'ai 0 h prévue (repos, absences)</label>' +
+    '<p class="tiny muted" style="margin-top:6px">Les cours déjà faits ou maîtrisés sont sautés. Si certaines journées sont passées ou à 0 h, les cours du module se resserrent sur les jours restants.</p>' +
+    '<details style="margin-top:10px"><summary class="small">Voir le calendrier du programme</summary><div class="small" style="margin-top:6px;display:grid;grid-template-columns:auto 1fr;gap:2px 12px">' + FT.map(x => '<span class="mono muted">' + fm(x[0]) + (x[1] !== x[0] ? " → " + fm(x[1]) : "") + "</span><span>" + esc(x[2]) + "</span>").join("") + "</div></details>" +
+    '<div class="row" style="margin-top:14px"><button class="btn pri" data-act="ftgo"' + (g.blocks.length ? "" : " disabled") + '>Charger le Fast Track</button><button class="btn ghost" data-act="mclose2">Annuler</button></div>');
+}
+function ftLoad() {
+  const g = ftBuild(!!($("#ftrest") && $("#ftrest").checked));
+  closeModal();
+  if (!g.blocks.length) return toast("Rien à placer : les dates du Fast Track sont passées ou après ton concours");
+  UNDO = S.blocks.map(b => ({ ...b })); UNDO.ft = true; UNDO_WIZ = null;
+  S.blocks = S.blocks.filter(b => !(b.s === "p" && b.d && b.d >= today && b.d <= FT_END && !b.lk && (!b.ma || b.wz === FT_TAG)));
+  S.blocks.push(...g.blocks); S.dirty = false; S.first = false;
+  const f = g.blocks.map(b => b.d).sort()[0]; ui.month = f.slice(0, 7); ui.day = f; ui.pw = wkStart(f); ui.pv = "month"; view = "plan";
+  save(); render(); window.scrollTo(0, 0);
+  toast("Fast Track chargé : " + g.blocks.length + " blocs" + (g.missed.length ? " · " + g.missed.length + " étape" + (g.missed.length > 1 ? "s" : "") + " non placée" + (g.missed.length > 1 ? "s" : "") : ""));
+}
 
 /* ----- Repartir de zéro ----- */
 function openScratch() {
@@ -1978,6 +2090,9 @@ function onAct(act, el, e) {
     case "dnav": ui.day = addD(ui.day || today, +d.n); ui.month = ui.day.slice(0, 7); ui.pw = wkStart(ui.day); return render();
     case "sgacc": return acceptRange(d.a, d.b);
     case "scratch": return openScratch();
+    case "ftopen": return openFT();
+    case "ftgo": return ftLoad();
+    case "ftundo": if (UNDO && UNDO.ft) { S.blocks = UNDO.slice(); UNDO = null; save(); render(); toast("Fast Track annulé : ton planning est revenu comme avant"); } return;
     case "scgo": return scratch(d.m, !!($("#scwipe") && $("#scwipe").checked));
     case "wzrm": return wizMove(d.mid, d.from, null);
     case "wzadd": { const s = document.querySelector('[data-wzadd="' + d.m + '"]'); return s && wizAdd(s.value, d.m); }
